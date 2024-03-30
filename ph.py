@@ -1,21 +1,20 @@
-#!/usr/bin/env python
-
+#!/usr/bin/env python3
 
 import argparse
 import json
 from pathlib import Path
 from typing import List
 
-from lib.utils import 
+from lib.utils import perform_commit, perform_ask, perform_env, perform_exit, perform_fetch, perform_gname, perform_search
 
 
-def main(commit, git-search, fetch-env, ask, env, exit, gname):
+def main(commit, git_search, fetch_env, ask, env, exit, gname):
     if(commit is not None):
        perform_commit(commit)
     elif(git-search is not None):
        perform_search(git_search)
     elif(fetch-env is not None):
-       perform_fetch(fetch-env)
+       perform_fetch(fetch_env)
     elif(ask is not None):
        perform_ask(ask)
     elif(env is not None):
@@ -29,9 +28,9 @@ def main(commit, git-search, fetch-env, ask, env, exit, gname):
 
 
 
-if _name_ == "_main_":
+if __name__ == "_main_":
     parser = argparse.ArgumentParser(
-        prog = 'ph'
+        prog = 'ph',
         description = """This script sets up an environment that logs terminal commands allowing 
                          for future semantic search"""
     )
@@ -78,6 +77,7 @@ if _name_ == "_main_":
     )
 
     args = parser.parse_args()
+    print(args.commit)
 
     main(args.commit, args.git-search, args.fetch-env, args.ask, args.env, args.exit, args.gname)
 
