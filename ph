@@ -20,9 +20,9 @@ url = "https://tanzhasan--example-web-flask-flask-app.modal.run/"
 /search_commit gname repo query 
 """
 
+gname_var = "PH_GNAME"
 def get_gname():
-    # make a subprocess that echoes and returns $PH_GNAME
-    gname = os.environ.get("PH_GNAME")
+    gname = os.environ.get(gname_var)
     gname = gname if gname is not None else "default"
     return gname
 def git_diff():
