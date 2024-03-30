@@ -5,8 +5,61 @@ import json
 from pathlib import Path
 from typing import List
 import os
+import subprocess
+import tkinter as tk
+import requests
+
+url = "https://tanzhasan--example-web-flask-flask-app.modal.run/"
+
+def git_diff():
+    exclude_paths = ["node_modules/", "venv/", "*.log", "*.swp", "*.bak", ".cache", ".env", ".config"] # useless files 
+    git_diff_command = ["git", "diff"]
+    for path in exclude_paths:
+        git_diff_command.append(f":(exclude){path}")
+    diff_output = subprocess.check_output(git_diff_command)
+    diff_output = diff_output.decode('utf-8')
+    return diff_output
+
+root, text_box = None, None
+def on_closing():
+    global root, text_box
+    text = text_box.get("1.0", tk.END)
+    print("Text before closing:", text)
+    root.destroy()
+
+def create_text_box(initial_text): 
+    global root, text_box
+    # Create the main window
+    root = tk.Tk()
+    root.title("Editable Text Box")
+
+    # Create a text box
+    text_box = tk.Text(root)
+    text_box.pack(fill=tk.BOTH, expand=True)
+    text_box.insert(tk.END, initial_text)
+
+    # Center the window on the screen
+    window_width = 400
+    window_height = 300
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+    x = (screen_width - window_width) // 2
+    y = (screen_height - window_height) // 2
+    root.geometry(f"{window_width}x{window_height}+{x}+{y}")
+
+    # Bind the closing event
+    root.protocol("WM_DELETE_WINDOW", on_closing)
+
+    # Run the application
+    root.mainloop()
 
 def perform_commit(repo):
+    # git diff file 
+    diff = git_diff()
+    # send to post request to server
+    
+    
+    
     print(repo)
 
 def perform_search(query):
@@ -39,7 +92,6 @@ def main(commit, git_search, fetch_env, ask, env, exit, gname):
     elif(env is not None):
        perform_env(env)
     elif(exit):
-
        perform_exit()
     elif(gname is not None):
        perform_gname(gname)
