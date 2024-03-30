@@ -4,9 +4,28 @@ import argparse
 import json
 from pathlib import Path
 from typing import List
+import os
 
-from lib.utils import perform_commit, perform_ask, perform_env, perform_exit, perform_fetch, perform_gname, perform_search
+def perform_commit(repo):
+    print(repo)
 
+def perform_search(query):
+    print(query)
+
+def perform_fetch(env):
+    print(env)
+
+def perform_ask(question):
+    print(question)
+
+def perform_env(repo):
+    print(repo)
+
+def perform_exit():
+    print("Exit")
+
+def perform_gname(gname):
+    print(gname)
 
 def main(commit, git_search, fetch_env, ask, env, exit, gname):
     if(commit is not None):
