@@ -9,7 +9,7 @@ import subprocess
 import tkinter as tk
 import requests
 
-url = "https://tanzhasan--example-web-flask-flask-app.modal.run/"
+url = "https://tanzhasan--example-web-flask-flask-app.modal.run"
 
 """/search_command gname query
 /add_command gname command 
@@ -34,11 +34,11 @@ def git_diff():
     diff_output = diff_output.decode('utf-8')
     return diff_output
 
-root, text_box = None, None
+root, text_box, edited_commit_message = None, None, None
 def on_closing():
-    global root, text_box
+    global root, text_box, edited_commit_message
     text = text_box.get("1.0", tk.END)
-    print("Text before closing:", text)
+    edited_commit_message = text
     root.destroy()
 
 def create_text_box(initial_text): 
@@ -68,13 +68,18 @@ def create_text_box(initial_text):
     root.mainloop()
 
 def perform_commit(repo):
-    # git diff file 
+    # git diff file contents and gname and repo 
     diff = git_diff()
-    print(get_gname())
+    obj = { "gname": get_gname(), "repo": repo, "diff_contents": diff }
+    
     # send to post request to server
+    res = requests.post(url + "/make_commit", json=obj)
+    
+    # open in a text box that is editable 
+    create_text_box("j")
     
     
-    print(repo)
+    
 
 def perform_search(query):
     print(query)
