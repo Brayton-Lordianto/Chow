@@ -1,5 +1,7 @@
+import os
+
 def perform_commit(repo):
-    print(repo)
+    os.system("echo commit")
 
 def perform_search(query):
     print(query)
