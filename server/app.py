@@ -32,14 +32,16 @@ def generate_vector(text):
             break
     return None
 
+
 @stub.function()
 def generate_expl(text):
     import openai
     import os
+
     client = openai.OpenAI(api_key=os.environ["OPENAI_API_KEY"])
     prompt = "Generate a summary of the users command Say nothing else except one line about what it does:\n\n"
     prompt += f"{text}"
-    print(prompt)
+    # print(prompt)
     response = client.chat.completions.create(
         messages=[{"role": "user", "content": prompt}],
         model="gpt-3.5-turbo",
@@ -49,25 +51,32 @@ def generate_expl(text):
 
     return expl
 
+
 @stub.function()
 def generate_commit(text):
     import openai
     import os
+
     client = openai.OpenAI(api_key=os.environ["OPENAI_API_KEY"])
     prompt = "Generate a commit message based on the diff:\n\n"
     prompt += f"{text}"
-    print(prompt)
+    # print(prompt)
     response = client.chat.completions.create(
-        messages=[{"role": "system",
+        messages=[
+            {
+                "role": "system",
                 "content": "You are a software developer writing a commit message.\n"
-                + "Write a commit message title then a newline and the commit message body."},
-                {"role": "user", "content": prompt}],
+                + "Write a commit message title then a newline and the commit message body.",
+            },
+            {"role": "user", "content": prompt},
+        ],
         model="gpt-3.5-turbo",
     )
     print(response.choices[0].message.content)
     expl = response.choices[0].message.content
 
     return expl
+
 
 @stub.function()
 def search_command(gname, query):
@@ -92,7 +101,10 @@ def search_command(gname, query):
         }
     ]
     results = db.aggregate(pipeline)
-    results = [{"command": result["content"], "explanation": result["explanation"]} for result in results]
+    results = [
+        {"command": result["content"], "explanation": result["explanation"]}
+        for result in results
+    ]
     return {"result": 200, "commands": results}
 
 
@@ -103,12 +115,24 @@ def add_command(gname, command):
     import os
 
     client = pymongo.MongoClient(os.environ["MONGO_URL"])
-
+    command = command.strip()
     db = client[gname]["command"]
     client = openai.OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+    existing_command = db.find_one({"content": command})
+
+    if existing_command:
+        return {
+            "result": 200,
+            "message": "Command already exists",
+            "inserted_id": str(existing_command["_id"]),
+        }
+
     explanation = generate_expl.local(command)
     vector = generate_vector.local(explanation)
-    result = db.insert_one({"content": command, "explanation": explanation, "vec": vector})
+    result = db.insert_one(
+        {"content": command, "explanation": explanation, "vec": vector}
+    )
+    print(gname, command, explanation)
 
     return {"result": 200, "inserted_id": str(result.inserted_id)}
 
@@ -127,7 +151,6 @@ def add_env(gname, repo, content):
     client = openai.OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
     return {"result": 200, "inserted_id": str(result.inserted_id)}
-
 
 
 @stub.function()
@@ -166,16 +189,16 @@ def add_commit(gname, repo, commit_message, commit_hash, branch):
     db = client[gname][repo]["commits"]
     openai.api_key = os.environ["OPENAI_API_KEY"]
 
-    
     vector = generate_vector.local(commit_message)
     commit = {
         "hash": commit_hash,
         "message": commit_message,
         "branch": branch,
-        "vec": vector
+        "vec": vector,
     }
     db.insert_one(commit)
     return {"result": 200, "inserted_id": str(commit["_id"])}
+
 
 @stub.function()
 def search_commit(gname, repo, query):
@@ -205,7 +228,7 @@ def search_commit(gname, repo, query):
             "hash": result["hash"],
             "message": result["message"],
             "branch": result["branch"],
-            "explanation": result["explanation"]
+            "explanation": result["explanation"],
         }
         for result in results
     ]
@@ -231,6 +254,7 @@ def flask_app():
     @web_app.post("/add_command")
     @cross_origin()
     def add_command_route():
+        # print(str(request))
         gname = request.json["gname"]
         command = request.json["command"]
         return add_command.remote(gname, command)
@@ -277,4 +301,3 @@ def flask_app():
         return search_commit.remote(gname, repo, query)
 
     return web_app
-
