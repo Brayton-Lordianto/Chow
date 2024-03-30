@@ -11,15 +11,16 @@ from lib.utils import perform_commit, perform_ask, perform_env, perform_exit, pe
 def main(commit, git_search, fetch_env, ask, env, exit, gname):
     if(commit is not None):
        perform_commit(commit)
-    elif(git-search is not None):
+    elif(git_search is not None):
        perform_search(git_search)
-    elif(fetch-env is not None):
+    elif(fetch_env is not None):
        perform_fetch(fetch_env)
     elif(ask is not None):
        perform_ask(ask)
     elif(env is not None):
        perform_env(env)
-    elif(exit is not None):
+    elif(exit):
+
        perform_exit()
     elif(gname is not None):
        perform_gname(gname)
@@ -28,58 +29,57 @@ def main(commit, git_search, fetch_env, ask, env, exit, gname):
 
 
 
-if __name__ == "_main_":
+if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        prog = 'ph',
         description = """This script sets up an environment that logs terminal commands allowing 
                          for future semantic search"""
     )
 
     parser.add_argument(
         "-c",
-        "commit",
+        "--commit",
         help = "get repo name for commiting"
     )
 
     parser.add_argument(
         "-s",
-        "git-search",
+        "--git_search",
         help = "get a query to search for commits"
     )
 
-    parse.add_argument(
+    parser.add_argument(
         "-f",
-        "fetch-env",
+        "--fetch_env",
         help = "fetches an environment from a repo"
     )
 
-    parse.add_argument(
+    parser.add_argument(
         "-a",
-        "ask",
+        "--ask",
         help = "ask a question based on current env"
     )
 
-    parse.add_argument(
+    parser.add_argument(
         "-e",
-        "env",
+        "--env",
         help = "load a current environment into the server"
     )
 
-    parse.add_argument(
-        "exit",
+    parser.add_argument(
+        "--exit",
+        default = False,
         action='store_true',
         help = "exit the current environment"
     )
 
-    parse.add_argument(
-        "gname",
+    parser.add_argument(
+        "--gname",
         help="create a hidden file given a group name"
     )
 
     args = parser.parse_args()
-    print(args.commit)
 
-    main(args.commit, args.git-search, args.fetch-env, args.ask, args.env, args.exit, args.gname)
+    main(args.commit, args.git_search, args.fetch_env, args.ask, args.env, args.exit, args.gname)
 
 
 
