@@ -4,8 +4,9 @@ import modal
 stub = Stub(
     "example-web-flask",
     image=Image.debian_slim().pip_install("flask", "pymongo", "openai", "flask-cors"),
-    secrets=[modal.Secret.from_name("flask_secrets")]
+    secrets=[modal.Secret.from_name("flask_secrets")],
 )
+
 
 @stub.function()
 def generate_vector(text):
@@ -13,6 +14,7 @@ def generate_vector(text):
     import os
     import random
     import time
+
     client = openai.OpenAI(api_key=os.environ["OPENAI_API_KEY"])
     while True:
         try:
@@ -30,65 +32,161 @@ def generate_vector(text):
             break
     return None
 
+
 @stub.function()
-def search_documents(query, id):
+def search_command(gname, query):
     import pymongo
     import openai
     import os
-    client = pymongo.MongoClient(os.environ['MONGO_URL'])
 
-    db = client[id]
+    client = pymongo.MongoClient(os.environ["MONGO_URL"])
+
+    db = client[gname]["command"]
     client = openai.OpenAI(api_key=os.environ["OPENAI_API_KEY"])
     query_vector = generate_vector.local(query)
-   
-    return {
-        "response": query_vector
-    }
+    pass
+
 
 @stub.function()
-def mongo_updater(id, collection_type, item):
-    import pymongo
-    import os
-    client = pymongo.MongoClient(os.environ['MONGO_URL'])
-
-    db = client[id]
-
-    return {"result": "success"}
-
-@stub.function()
-def get_notifs(id):
+def add_command(gname, command):
     import pymongo
     import openai
     import os
-    client = pymongo.MongoClient(os.environ['MONGO_URL'])
 
-    db = client[id]
+    client = pymongo.MongoClient(os.environ["MONGO_URL"])
+
+    db = client[gname]["command"]
     client = openai.OpenAI(api_key=os.environ["OPENAI_API_KEY"])
-    responses = []
-    return responses
+    pass
+
+
+@stub.function()
+def add_env(gname, repo, content):
+    import pymongo
+    import openai
+    import os
+
+    client = pymongo.MongoClient(os.environ["MONGO_URL"])
+
+    db = client[gname]["command"]
+    client = openai.OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+    pass
+
+
+@stub.function()
+def get_env(gname, repo):
+    import pymongo
+    import openai
+    import os
+
+    client = pymongo.MongoClient(os.environ["MONGO_URL"])
+
+    db = client[gname]["command"]
+    client = openai.OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+    pass
+
+
+@stub.function()
+def make_commit(gname, repo, diff_contents):
+    import pymongo
+    import openai
+    import os
+
+    client = pymongo.MongoClient(os.environ["MONGO_URL"])
+
+    db = client[gname][repo]
+    client = openai.OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+    pass
+
+
+@stub.function()
+def add_commit(gname, repo, commit_message, commit_hash, branch):
+    import pymongo
+    import openai
+    import os
+
+    client = pymongo.MongoClient(os.environ["MONGO_URL"])
+
+    db = client[gname][repo]
+    client = openai.OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+    pass
+
+
+@stub.function()
+def search_commit(gname, repo, query):
+    import pymongo
+    import openai
+    import os
+
+    client = pymongo.MongoClient(os.environ["MONGO_URL"])
+
+    db = client[gname][repo]
+    client = openai.OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+    pass
+
 
 @stub.function()
 @wsgi_app()
-def flask_app():   
+def flask_app():
     from flask import Flask, request
     from flask_cors import CORS, cross_origin
 
     web_app = Flask(__name__)
     cors = CORS(web_app)
 
-    @web_app.post("/search")
+    @web_app.post("/search_command")
     @cross_origin()
-    def search():
-        return search_documents.remote(request.json["query"], request.json["id"])
+    def search_command_route():
+        gname = request.json["gname"]
+        query = request.json["query"]
+        return search_command.remote(gname, query)
 
-    @web_app.post("/get_notifs")
+    @web_app.post("/add_command")
     @cross_origin()
-    def notif_updates():
-        return get_notifs.remote(request.json["id"])
-    
-    @web_app.post("/add_item")
+    def add_command_route():
+        gname = request.json["gname"]
+        command = request.json["command"]
+        return add_command.remote(gname, command)
+
+    @web_app.post("/add_env")
     @cross_origin()
-    def add_item():
-        return mongo_updater.remote(request.json["id"], request.json["type"], request.json["content"])
+    def add_env_route():
+        gname = request.json["gname"]
+        repo = request.json["repo"]
+        content = request.json["content"]
+        return add_env.remote(gname, repo, content)
+
+    @web_app.post("/get_env")
+    @cross_origin()
+    def get_env_route():
+        gname = request.json["gname"]
+        repo = request.json["repo"]
+        return get_env.remote(gname, repo)
+
+    @web_app.post("/make_commit")
+    @cross_origin()
+    def make_commit_route():
+        gname = request.json["gname"]
+        repo = request.json["repo"]
+        diff_contents = request.json["diff_contents"]
+        return make_commit.remote(gname, repo, diff_contents)
+
+    @web_app.post("/add_commit")
+    @cross_origin()
+    def add_commit_route():
+        gname = request.json["gname"]
+        repo = request.json["repo"]
+        commit_message = request.json["commit_message"]
+        commit_hash = request.json["commit_hash"]
+        branch = request.json["branch"]
+        return add_commit.remote(gname, repo, commit_message, commit_hash, branch)
+
+    @web_app.post("/search_commit")
+    @cross_origin()
+    def search_commit_route():
+        gname = request.json["gname"]
+        repo = request.json["repo"]
+        query = request.json["query"]
+        return search_commit.remote(gname, repo, query)
 
     return web_app
