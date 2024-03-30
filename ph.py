@@ -9,7 +9,6 @@ from lib.utils import perform_commit, perform_ask, perform_env, perform_exit, pe
 
 
 def main(commit, git_search, fetch_env, ask, env, exit, gname):
-    print(commit)
     if(commit is not None):
        perform_commit(commit)
     elif(git_search is not None):
@@ -20,8 +19,8 @@ def main(commit, git_search, fetch_env, ask, env, exit, gname):
        perform_ask(ask)
     elif(env is not None):
        perform_env(env)
-    elif(exit is not None):
-       print(exit)
+    elif(exit):
+
        perform_exit()
     elif(gname is not None):
        perform_gname(gname)
@@ -31,7 +30,6 @@ def main(commit, git_search, fetch_env, ask, env, exit, gname):
 
 
 if __name__ == "__main__":
-    print("kill me")
     parser = argparse.ArgumentParser(
         description = """This script sets up an environment that logs terminal commands allowing 
                          for future semantic search"""
@@ -69,7 +67,8 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "--exit",
-        action='store_false',
+        default = False,
+        action='store_true',
         help = "exit the current environment"
     )
 
@@ -79,7 +78,6 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-    print(args.commit)
 
     main(args.commit, args.git_search, args.fetch_env, args.ask, args.env, args.exit, args.gname)
 
