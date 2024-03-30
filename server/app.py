@@ -32,6 +32,42 @@ def generate_vector(text):
             break
     return None
 
+@stub.function()
+def generate_expl(text):
+    import openai
+    import os
+    client = openai.OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+    prompt = "Generate a summary of the users command Say nothing else except one line about what it does:\n\n"
+    prompt += f"{text}"
+    print(prompt)
+    response = client.chat.completions.create(
+        messages=[{"role": "user", "content": prompt}],
+        model="gpt-3.5-turbo",
+    )
+    print(response.choices[0].message.content)
+    expl = response.choices[0].message.content
+
+    return expl
+
+@stub.function()
+def generate_commit(text):
+    import openai
+    import os
+    client = openai.OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+    prompt = "Generate a commit message based on the diff:\n\n"
+    prompt += f"{text}"
+    print(prompt)
+    response = client.chat.completions.create(
+        messages=[{"role": "system",
+                "content": "You are a software developer writing a commit message.\n"
+                + "Write a commit message title then a newline and the commit message body."},
+                {"role": "user", "content": prompt}],
+        model="gpt-3.5-turbo",
+    )
+    print(response.choices[0].message.content)
+    expl = response.choices[0].message.content
+
+    return expl
 
 @stub.function()
 def search_command(gname, query):
@@ -44,7 +80,20 @@ def search_command(gname, query):
     db = client[gname]["command"]
     client = openai.OpenAI(api_key=os.environ["OPENAI_API_KEY"])
     query_vector = generate_vector.local(query)
-    pass
+    pipeline = [
+        {
+            "$vectorSearch": {
+                "index": "vector_index",
+                "path": "vec",
+                "queryVector": query_vector,
+                "numCandidates": 5,
+                "limit": 3,
+            }
+        }
+    ]
+    results = db.aggregate(pipeline)
+    results = [{"command": result["content"], "explanation": result["explanation"]} for result in results]
+    return {"result": 200, "commands": results}
 
 
 @stub.function()
@@ -57,7 +106,11 @@ def add_command(gname, command):
 
     db = client[gname]["command"]
     client = openai.OpenAI(api_key=os.environ["OPENAI_API_KEY"])
-    pass
+    explanation = generate_expl.local(command)
+    vector = generate_vector.local(explanation)
+    result = db.insert_one({"content": command, "explanation": explanation, "vec": vector})
+
+    return {"result": 200, "inserted_id": str(result.inserted_id)}
 
 
 @stub.function()
@@ -67,10 +120,14 @@ def add_env(gname, repo, content):
     import os
 
     client = pymongo.MongoClient(os.environ["MONGO_URL"])
+    db = client[gname][repo]["env"]
+    db.drop()
+    result = db.insert_one({"content": content})
 
-    db = client[gname]["command"]
     client = openai.OpenAI(api_key=os.environ["OPENAI_API_KEY"])
-    pass
+
+    return {"result": 200, "inserted_id": str(result.inserted_id)}
+
 
 
 @stub.function()
@@ -80,10 +137,9 @@ def get_env(gname, repo):
     import os
 
     client = pymongo.MongoClient(os.environ["MONGO_URL"])
-
-    db = client[gname]["command"]
-    client = openai.OpenAI(api_key=os.environ["OPENAI_API_KEY"])
-    pass
+    db = client[gname][repo]["env"]
+    documents = list(db.find())
+    return {"result": 200, "inserted_id": str(documents[0]["content"])}
 
 
 @stub.function()
@@ -96,7 +152,8 @@ def make_commit(gname, repo, diff_contents):
 
     db = client[gname][repo]
     client = openai.OpenAI(api_key=os.environ["OPENAI_API_KEY"])
-    pass
+    explanation = generate_commit.local(diff_contents)
+    return {"result": 200, "commit_message": explanation}
 
 
 @stub.function()
@@ -106,11 +163,19 @@ def add_commit(gname, repo, commit_message, commit_hash, branch):
     import os
 
     client = pymongo.MongoClient(os.environ["MONGO_URL"])
+    db = client[gname][repo]["commits"]
+    openai.api_key = os.environ["OPENAI_API_KEY"]
 
-    db = client[gname][repo]
-    client = openai.OpenAI(api_key=os.environ["OPENAI_API_KEY"])
-    pass
-
+    
+    vector = generate_vector.local(commit_message)
+    commit = {
+        "hash": commit_hash,
+        "message": commit_message,
+        "branch": branch,
+        "vec": vector
+    }
+    db.insert_one(commit)
+    return {"result": 200, "inserted_id": str(commit["_id"])}
 
 @stub.function()
 def search_commit(gname, repo, query):
@@ -119,10 +184,32 @@ def search_commit(gname, repo, query):
     import os
 
     client = pymongo.MongoClient(os.environ["MONGO_URL"])
+    db = client[gname][repo]["commits"]
+    openai.api_key = os.environ["OPENAI_API_KEY"]
 
-    db = client[gname][repo]
-    client = openai.OpenAI(api_key=os.environ["OPENAI_API_KEY"])
-    pass
+    query_vector = generate_vector.local(query)
+    pipeline = [
+        {
+            "$vectorSearch": {
+                "index": "vector_index",
+                "path": "vec",
+                "queryVector": query_vector,
+                "numCandidates": 5,
+                "limit": 3,
+            }
+        }
+    ]
+    results = db.aggregate(pipeline)
+    results = [
+        {
+            "hash": result["hash"],
+            "message": result["message"],
+            "branch": result["branch"],
+            "explanation": result["explanation"]
+        }
+        for result in results
+    ]
+    return {"result": 200, "commits": results}
 
 
 @stub.function()
@@ -190,3 +277,4 @@ def flask_app():
         return search_commit.remote(gname, repo, query)
 
     return web_app
+
