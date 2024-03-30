@@ -11,6 +11,20 @@ import requests
 
 url = "https://tanzhasan--example-web-flask-flask-app.modal.run/"
 
+"""/search_command gname query
+/add_command gname command 
+/add_env gname repo content
+/get_env gname repo
+/make_commit gname repo diff_contents #returns llm response
+/add_commit gname repo commit_message commit_hash branch #adds to mongo
+/search_commit gname repo query 
+"""
+
+def get_gname():
+    # make a subprocess that echoes and returns $PH_GNAME
+    gname = os.environ.get("PH_GNAME")
+    gname = gname if gname is not None else "default"
+    return gname
 def git_diff():
     exclude_paths = ["node_modules/", "venv/", "*.log", "*.swp", "*.bak", ".cache", ".env", ".config"] # useless files 
     git_diff_command = ["git", "diff"]
@@ -56,8 +70,8 @@ def create_text_box(initial_text):
 def perform_commit(repo):
     # git diff file 
     diff = git_diff()
+    print(get_gname())
     # send to post request to server
-    
     
     
     print(repo)
