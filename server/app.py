@@ -113,12 +113,19 @@ def add_command(gname, command):
     import pymongo
     import openai
     import os
+    import json
 
     client = pymongo.MongoClient(os.environ["MONGO_URL"])
     command = command.strip()
     if command == '':
         return {"result": 200}
-    print(gname)
+    print(gname, command)
+    if command[0]=='$':
+        command = command[1:]
+    command = command.strip()
+    if "./ph" == command[:4] or "ph " in command[:3]:
+        return {"result": 200}
+    print(json.dumps(command, ensure_ascii=False))
     db = client[gname]["command"]
     client = openai.OpenAI(api_key=os.environ["OPENAI_API_KEY"])
     existing_command = db.find_one({"content": command})

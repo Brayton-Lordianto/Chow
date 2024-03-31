@@ -153,7 +153,8 @@ def perform_commit(repo):
 
 
 def perform_search(search_string):
-    repo, query = search_string.split()
+    repo = search_string.split()
+    repo, query = repo[0], repo[1:]
     obj = {"gname": get_gname(), "repo": repo, "query": query}
     res = requests.post(url + "/search_commit", json=obj)
     res = res.json()["commits"]
