@@ -230,7 +230,6 @@ def search_commit(gname, repo, query):
             "hash": result["hash"],
             "message": result["message"],
             "branch": result["branch"],
-            "explanation": result["explanation"],
         }
         for result in results
     ]

@@ -152,8 +152,28 @@ def perform_commit(repo):
     print("commmit pushed")
 
 
-def perform_search(query):
-    print(query)
+def perform_search(search_string):
+    repo, query = search_string.split()
+    obj = {"gname": get_gname(), "repo": repo, "query": query}
+    res = requests.post(url + "/search_commit", json=obj)
+    res = res.json()["commits"]
+    index = 0
+    while True:
+        sys.stdout.write(f'\r\033[2K {res[index]["branch"].strip()} {res[index]["hash"].strip()} {res[index]["message"][:40] + ("..." if len(res[index]["message"]) > 40 else "")}')
+        sys.stdout.flush()
+        try:
+            key = readchar.readkey()
+            if key == readchar.key.TAB:
+                index = (index + 1) % len(res)
+            elif key == readchar.key.ENTER:
+                print()
+                print(res[index]["branch"], res[index]["hash"])
+                return
+            else:
+                print("\nInvalid input. Press Tab to navigate or Enter to select.")
+        except KeyboardInterrupt:
+            print("\nExiting...")
+            break
 
 
 def perform_fetch(repo):
@@ -244,7 +264,7 @@ if __name__ == "__main__":
 
     parser.add_argument("-c", "--commit", help="get repo name for commiting")
 
-    parser.add_argument("-s", "--git_search", help="get a query to search for commits")
+    parser.add_argument("-s", "--git_search", help="string of repo and query")
 
     parser.add_argument("-f", "--fetch_env", help="fetches an environment from a repo")
 
