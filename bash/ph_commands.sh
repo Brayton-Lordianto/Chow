@@ -2,10 +2,17 @@
 ph_handle_command() { 
     last_command=$(fc -ln -1) # Get the last executed command as a string
     ph_handle_gname "$last_command" # Check if the last command contains gname. If it does, run the command within an eval
+    ph_handle_exit "$last_command" # Check if the last command contains exit. If it does, set PH_ON to false
     ph_add_command "$last_command" # Send the last command to the server
 }
 
 ph_add_command() {
+    # early out 
+    ph_on=${PH_ON:-false}
+    if [ "$ph_on" = false ]; then
+        return
+    fi
+
     # Command data
     last_command=$(printf "%s" "$1" | jq -sRr @json) # Properly escape the entire command string
     gname=${PH_GNAME:-test}
@@ -23,11 +30,18 @@ ph_add_command() {
     fi
 }
 
-# Check if the last command contains gname. If it does, export $PH_GNAME
+# Check if the last command contains gname. If it does, export $PH_GNAME and $PH_ON
 ph_handle_gname() {
-    if [[ $1 == *gname* ]]; then
+    if [[ $1 == *ph*gname* ]]; then
         # get gname from ph_gname.txt 
         gname=$(cat ~/ph_gname.txt)
         export PH_GNAME=$gname
+        export PH_ON=true
+    fi
+}
+
+ph_handle_exit() { 
+    if [[ $1 == *ph*exit* ]]; then
+        export PH_ON=false
     fi
 }

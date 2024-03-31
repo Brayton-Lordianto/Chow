@@ -12,19 +12,11 @@ import requests
 import readline
 import pipes
 import dotenv
+import readchar  # using module readchar
 
+"test commit here"
 dotenv.load_dotenv()
-url = os.environ.get("MODAL_URL")
-
-"""
-/search_command gname query
-/add_command gname command 
-/add_env gname repo content
-/get_env gname repo
-/make_commit gname repo diff_contents #returns llm response
-/add_commit gname repo commit_message commit_hash branch #adds to mongo
-/search_commit gname repo query 
-"""
+url = "https://tanzhasan--example-web-flask-flask-app.modal.run"
 
 ph_on_var = "PH_ON"
 gname_var, cached_gname = "PH_GNAME", None
@@ -124,6 +116,10 @@ def get_current_git_info():
 def perform_commit(repo):
     # send to post request to server to make a commit
     diff = git_diff()
+    if diff == "": # no changes
+        print("No added changes to commit.")
+        return
+    
     obj = {"gname": get_gname(), "repo": repo, "diff_contents": diff}
     res = requests.post(url + "/make_commit", json=obj)
 
@@ -198,10 +194,12 @@ def perform_env(repo):
     res = requests.post(url + "/add_env", json=obj)
     return "done"
     
-
+def set_ph_on(value): 
+    with open(f"{os.environ['HOME']}/ph_on.txt", "w") as file:
+        file.write(value)
 
 def perform_exit():
-    print("Exit")
+    pass # this is now handled by the bash script
 
 def set_gname(gname):
     global gname_var
@@ -210,7 +208,6 @@ def set_gname(gname):
     # from the bash file, after this, it will set $PH_GNAME to the gname
     with open(f"{os.environ['HOME']}/ph_gname.txt", "w") as file:
         file.write(gname)
-
     
 def perform_join(gname):
     # set up gname env variable
@@ -221,9 +218,8 @@ def perform_join(gname):
     
     # set up ph_on variable
     # starts logging every command for the specific gname
-    os.environ[ph_on_var] = "true"
+    set_ph_on("true")
 
-import readchar  # using module readchar
 
 def perform_command_search(query):
     obj = {"gname": get_gname(), "query": query}
