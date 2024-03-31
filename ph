@@ -197,10 +197,12 @@ def perform_env(repo):
     res = requests.post(url + "/add_env", json=obj)
     return "done"
     
-
+def set_ph_on(value): 
+    with open(f"{os.environ['HOME']}/ph_on.txt", "w") as file:
+        file.write(value)
 
 def perform_exit():
-    print("Exit")
+    pass # this is now handled by the bash script
 
 def set_gname(gname):
     global gname_var
@@ -209,7 +211,6 @@ def set_gname(gname):
     # from the bash file, after this, it will set $PH_GNAME to the gname
     with open(f"{os.environ['HOME']}/ph_gname.txt", "w") as file:
         file.write(gname)
-
     
 def perform_join(gname):
     # set up gname env variable
@@ -220,7 +221,7 @@ def perform_join(gname):
     
     # set up ph_on variable
     # starts logging every command for the specific gname
-    os.environ[ph_on_var] = "true"
+    set_ph_on("true")
 
 import readchar  # using module readchar
 
