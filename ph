@@ -27,7 +27,6 @@ gname_var = "PH_GNAME"
 def get_gname():
     gname = os.environ.get(gname_var)
     gname = gname if gname is not None else "default"
-    print(gname)
     return gname
 def git_diff():
     exclude_paths = ["node_modules/", "venv/", "*.log", "*.swp", "*.bak", ".cache", ".env", ".config"] # useless files 
