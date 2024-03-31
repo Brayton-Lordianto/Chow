@@ -83,15 +83,16 @@ def stress_test(text):
     import os
 
     client = openai.OpenAI(api_key=os.environ["OPENAI_API_KEY"])
-    prompt = "Generate tests for the below code:\n\n"
+    prompt = "Generate only the code for tests for the below code:\n\n"
     prompt += f"{text}"
     response = client.chat.completions.create(
         messages=[
             {
                 "role": "system",
                 "content": "You are a software developer reviewing code.\n"
-                + "Write tests for this code using pytest. Try and fuzz the code to expose vulnerabilities."
-                + "Write only code and nothing else. Make sure the imports are all correct.",
+                + "Write tests for this code using pytest. Try and fuzz the code to expose vulnerabilities.\n"
+                + "Write only code and nothing else. Make sure the imports are all correct.\n"
+                + "Write only code and nothing else. Make sure the test code works.",
             },
             {"role": "user", "content": prompt},
         ],
@@ -99,6 +100,11 @@ def stress_test(text):
     )
     print(response.choices[0].message.content)
     expl = response.choices[0].message.content
+    pieces = expl.split('```')
+    if len(pieces) > 1:
+        expl = pieces[1]
+    else:
+        expl = pieces[0]
 
     return {"response": expl}
 
