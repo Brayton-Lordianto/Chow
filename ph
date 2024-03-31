@@ -11,7 +11,7 @@ import requests
 import dotenv
 
 dotenv.load_dotenv()
-url = os.environ["MODAL_URL"]
+url = os.environ.get("MODAL_URL")
 
 """/search_command gname query
 /add_command gname command 
