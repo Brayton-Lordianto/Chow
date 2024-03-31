@@ -28,6 +28,11 @@ ph_add_command() {
     else 
         ( curl -s -X POST -H "Content-Type: application/json" -d "$data" "$url" & ) >/dev/null 2>&1
     fi
+
+    # echo a checkmark to indicate that the command was sent
+    color="\033[0;32m"
+    checkmark="✓"
+    echo -e "${color}${checkmark}"
 }
 
 # Check if the last command contains gname. If it does, export $PH_GNAME and $PH_ON
