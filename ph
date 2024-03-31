@@ -159,7 +159,7 @@ def perform_search(search_string):
         print("Cannot use current environment called ", get_gname())
         return
     print(
-        "Press Tab to navigate. \nPress Enter to select, stash, and checkout. \nPress Ctrl+X to copy hash to clipboard. \nPress Ctrl+C to exit.\n"
+        "Press Tab to navigate. \nPress Ctrl+X to copy hash to clipboard. \nPress Ctrl+C to exit.\n"
     )
     while True:
         sys.stdout.write(
@@ -170,13 +170,8 @@ def perform_search(search_string):
             key = readchar.readkey()
             if key == readchar.key.TAB:
                 index = (index + 1) % len(res)
-            elif key == readchar.key.ENTER:
-                print()
-                subprocess.run(['git', 'stash'], encoding='utf-8')
-                subprocess.run(['git', 'checkout'], input=res[index]["hash"], encoding='utf-8')
-                return
             elif key == readchar.key.CTRL_X:
-                selected_text = res[index]["hash"]
+                selected_text = "git checkout " + res[index]["hash"]
                 subprocess.run(['xclip', '-selection', 'clipboard'], input=selected_text, encoding='utf-8')
                 print(f"\nCopied to clipboard: {selected_text}")
                 return
