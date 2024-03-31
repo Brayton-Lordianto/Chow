@@ -172,9 +172,8 @@ def perform_search(search_string):
                 index = (index + 1) % len(res)
             elif key == readchar.key.ENTER:
                 print()
-                print(res[index]["branch"], res[index]["hash"])
                 subprocess.run(['git', 'stash'], encoding='utf-8')
-                subprocess.run(['git', 'checkout'], input=selected_text, encoding='utf-8')
+                subprocess.run(['git', 'checkout'], input=res[index]["hash"], encoding='utf-8')
                 return
             elif key == readchar.key.CTRL_X:
                 selected_text = res[index]["hash"]
