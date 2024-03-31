@@ -20,6 +20,8 @@ url = "https://tanzhasan--example-web-flask-flask-app.modal.run"
 
 ph_on_var = "PH_ON"
 gname_var, cached_gname = "PH_GNAME", None
+
+
 def get_gname():
     global cached_gname
     if not cached_gname:
@@ -27,6 +29,8 @@ def get_gname():
         gname = gname if gname is not None else "default"
         cached_gname = gname
     return cached_gname
+
+
 def git_diff():
     exclude_paths = [
         "node_modules/",
@@ -116,10 +120,10 @@ def get_current_git_info():
 def perform_commit(repo):
     # send to post request to server to make a commit
     diff = git_diff()
-    if diff == "": # no changes
+    if diff == "":  # no changes
         print("No added changes to commit.")
         return
-    
+
     obj = {"gname": get_gname(), "repo": repo, "diff_contents": diff}
     res = requests.post(url + "/make_commit", json=obj)
 
@@ -132,7 +136,7 @@ def perform_commit(repo):
         print("cancelled commit")
         return
 
-    # if confirmed, perform a push 
+    # if confirmed, perform a push
     git_push(edited_commit_message)
 
     # add to mongo
@@ -150,7 +154,7 @@ def perform_commit(repo):
 
 def perform_search(search_string):
     repo = search_string.split()
-    repo, query = repo[0], ' '.join(repo[1:])
+    repo, query = repo[0], " ".join(repo[1:])
     obj = {"gname": get_gname(), "repo": repo, "query": query}
     res = requests.post(url + "/search_commit", json=obj)
     res = res.json()["commits"]
@@ -158,9 +162,13 @@ def perform_search(search_string):
     if len(res) == 0:
         print("Cannot use current environment called ", get_gname())
         return
-    print("Press Tab to navigate. \nPress Enter to select and execute. \nPress Ctrl+C to exit.\n")
+    print(
+        "Press Tab to navigate. \nPress Enter to select and execute. \nPress Ctrl+C to exit.\n"
+    )
     while True:
-        sys.stdout.write(f'\r\033[2K {res[index]["branch"].strip()} {res[index]["hash"].strip()} {res[index]["message"][:40] + ("..." if len(res[index]["message"]) > 40 else "")}')
+        sys.stdout.write(
+            f'\r\033[2K {res[index]["branch"].strip()} {res[index]["hash"].strip()} {res[index]["message"][:40] + ("..." if len(res[index]["message"]) > 40 else "")}'
+        )
         sys.stdout.flush()
         try:
             key = readchar.readkey()
@@ -197,13 +205,16 @@ def perform_env(repo):
     obj = {"gname": get_gname(), "repo": repo, "content": env_contents}
     res = requests.post(url + "/add_env", json=obj)
     return "done"
-    
-def set_ph_on(value): 
+
+
+def set_ph_on(value):
     with open(f"{os.environ['HOME']}/ph_on.txt", "w") as file:
         file.write(value)
 
+
 def perform_exit():
-    pass # this is now handled by the bash script
+    pass  # this is now handled by the bash script
+
 
 def set_gname(gname):
     global gname_var
@@ -212,14 +223,15 @@ def set_gname(gname):
     # from the bash file, after this, it will set $PH_GNAME to the gname
     with open(f"{os.environ['HOME']}/ph_gname.txt", "w") as file:
         file.write(gname)
-    
+
+
 def perform_join(gname):
     # set up gname env variable
     global cached_gname
     set_gname(gname)
     print("joined gname", gname)
     cached_gname = gname
-    
+
     # set up ph_on variable
     # starts logging every command for the specific gname
     set_ph_on("true")
@@ -233,10 +245,14 @@ def perform_command_search(query):
         print("No commands found.")
         return
 
-    print("Press Tab to navigate. \nPress Enter to select and execute. \nPress Ctrl+C to exit.\n")
+    print(
+        "Press Tab to navigate. \nPress Enter to select and execute. \nPress Ctrl+C to exit.\n"
+    )
     index = 0
     while True:
-        sys.stdout.write(f'\r\033[2K {commands[index]["command"]} {commands[index]["explanation"]}')
+        sys.stdout.write(
+            f'\r\033[2K {commands[index]["command"]} {commands[index]["explanation"]}'
+        )
         sys.stdout.flush()
         try:
             key = readchar.readkey()
@@ -251,8 +267,6 @@ def perform_command_search(query):
         except KeyboardInterrupt:
             print("\nExiting...")
             break
-            
-        
 
 
 def main(commit, git_search, fetch_env, ask, env, exit, gname, command_search):

@@ -117,10 +117,10 @@ def add_command(gname, command):
 
     client = pymongo.MongoClient(os.environ["MONGO_URL"])
     command = command.strip()
-    if command == '':
+    if command == "":
         return {"result": 200}
     print(gname, command)
-    if command[0]=='$':
+    if command[0] == "$":
         command = command[1:]
     command = command.strip()
     if "./ph" == command[:4] or "ph " in command[:3]:
