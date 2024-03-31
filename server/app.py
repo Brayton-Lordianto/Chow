@@ -162,7 +162,7 @@ def get_env(gname, repo):
     client = pymongo.MongoClient(os.environ["MONGO_URL"])
     db = client[gname][repo]["env"]
     documents = list(db.find())
-    return {"result": 200, "inserted_id": str(documents[0]["content"])}
+    return {"result": 200, "env": str(documents[0]["content"])}
 
 
 @stub.function()
@@ -265,6 +265,7 @@ def flask_app():
         gname = request.json["gname"]
         repo = request.json["repo"]
         content = request.json["content"]
+        print(gname, repo, content)
         return add_env.remote(gname, repo, content)
 
     @web_app.post("/get_env")
