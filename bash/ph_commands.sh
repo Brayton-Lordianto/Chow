@@ -7,10 +7,11 @@ ph_handle_command() {
 
 ph_add_command() {
     # Command data
-    last_command=$(printf "%q" "$1" | jq -sR) # Properly escape the entire command string
+    last_command=$(printf "%s" "$1" | jq -sRr @json) # Properly escape the entire command string
     gname=${PH_GNAME:-test}
     data="{\"gname\":\"$gname\", \"command\":$last_command}"
-    url=$MODAL_URL
+    url="https://tanzhasan--example-web-flask-flask-app.modal.run/add_command"
+    echo $lastcomm
 
     # Request 
     # Adding -s to the curl command will suppress the progress meter, while >/dev/null 2>&1 redirects both stdout and stderr to /dev/null, effectively suppressing any output

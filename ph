@@ -136,9 +136,6 @@ def perform_commit(repo):
         print("cancelled commit")
         return
 
-    # if confirmed, perform a push
-    if not edited_commit_message: print("cancelled commit"); return
-    
     # if confirmed, perform a push 
     git_push(edited_commit_message)
 
@@ -218,7 +215,7 @@ def perform_join(gname):
     # set up gname env variable
     global cached_gname
     set_gname(gname)
-    print("added gname", gname)
+    print("joined gname", gname)
     cached_gname = gname
     
     # set up ph_on variable
@@ -229,13 +226,13 @@ import readchar  # using module readchar
 
 def perform_command_search(query):
     obj = {"gname": get_gname(), "query": query}
-    print(get_gname())
     res = requests.post(url + "/search_command", json=obj)
     commands = res.json()["commands"]
     if not commands:
         print("No commands found.")
         return
 
+    print("Press Tab to navigate. \nPress Enter to select and execute. \nPress Ctrl+C to exit.\n")
     index = 0
     while True:
         sys.stdout.write(f'\r\033[2K {commands[index]["command"]} {commands[index]["explanation"]}')
@@ -246,7 +243,7 @@ def perform_command_search(query):
                 index = (index + 1) % len(commands)
             elif key == readchar.key.ENTER:
                 print()
-                print(commands[index]["command"])
+                os.system(commands[index]["command"])
                 return
             else:
                 print("\nInvalid input. Press Tab to navigate or Enter to select.")
