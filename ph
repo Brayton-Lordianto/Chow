@@ -202,10 +202,6 @@ def perform_fetch(repo):
         file.write(env_info)
 
 
-def perform_ask(question):
-    print(question)
-
-
 def perform_env(repo):
     echo_env = ["cat", ".env"]
     env_contents = subprocess.check_output(echo_env)
@@ -342,7 +338,7 @@ def stress_test(file):
 
 
 def main(
-    commit, git_search, fetch_env, ask, env, exit, gname, command_search, issue, stress
+    commit, git_search, fetch_env, env, exit, gname, command_search, issue, stress
 ):
     if commit is not None:
         perform_commit(commit)
@@ -350,8 +346,6 @@ def main(
         perform_search(git_search)
     elif fetch_env is not None:
         perform_fetch(fetch_env)
-    elif ask is not None:
-        perform_ask(ask)
     elif env is not None:
         perform_env(env)
     elif exit:
@@ -377,8 +371,6 @@ if __name__ == "__main__":
     parser.add_argument("-s", "--git_search", help="string of repo and query")
 
     parser.add_argument("-f", "--fetch_env", help="fetches an environment from a repo")
-
-    parser.add_argument("-a", "--ask", help="ask a question based on current env")
 
     parser.add_argument("-i", "--issue", help="generate issue for a specific file")
 
@@ -407,7 +399,6 @@ if __name__ == "__main__":
         args.commit,
         args.git_search,
         args.fetch_env,
-        args.ask,
         args.env,
         args.exit,
         args.gname,
