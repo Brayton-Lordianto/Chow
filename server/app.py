@@ -78,6 +78,32 @@ def generate_issue(text):
 
 
 @stub.function()
+def stress_test(text):
+    import openai
+    import os
+
+    client = openai.OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+    prompt = "Generate tests for the below code:\n\n"
+    prompt += f"{text}"
+    response = client.chat.completions.create(
+        messages=[
+            {
+                "role": "system",
+                "content": "You are a software developer reviewing code.\n"
+                + "Write tests for this code using pytest. Try and fuzz the code to expose vulnerabilities."
+                + "Write only code and nothing else. Make sure the imports are all correct.",
+            },
+            {"role": "user", "content": prompt},
+        ],
+        model="gpt-4",
+    )
+    print(response.choices[0].message.content)
+    expl = response.choices[0].message.content
+
+    return {"response": expl}
+
+
+@stub.function()
 def generate_commit(text):
     import openai
     import os
@@ -340,5 +366,11 @@ def flask_app():
     def generate_issue_route():
         code = request.json["code"]
         return generate_issue.remote(code)
+    
+    @web_app.post("/stress_test")
+    @cross_origin()
+    def stress_test_route():
+        code = request.json["code"]
+        return stress_test.remote(code)
 
     return web_app

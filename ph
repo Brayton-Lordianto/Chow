@@ -298,7 +298,20 @@ def github_issue(file):
         print(f"Error occurred while creating the issue: {e}")
 
 
-def main(commit, git_search, fetch_env, ask, env, exit, gname, command_search, issue):
+def stress_test(file):
+    file_env = ["cat", file]
+    fcontent = subprocess.check_output(file_env)
+    fcontent = fcontent.decode("utf-8")
+    # print(fcontent)
+    filename = file.split('/')[-1]
+    obj = {"code": fcontent}
+    res = requests.post(url + "/stress_test", json=obj)
+    code_body = res.json()["response"]
+    with open(f"test_{filename}", "w") as file:
+        file.write(code_body)
+
+
+def main(commit, git_search, fetch_env, ask, env, exit, gname, command_search, issue, stress):
     if commit is not None:
         perform_commit(commit)
     elif git_search is not None:
@@ -317,6 +330,8 @@ def main(commit, git_search, fetch_env, ask, env, exit, gname, command_search, i
         perform_command_search(command_search)
     elif issue is not None:
         github_issue(issue)
+    elif stress is not None:
+        stress_test(stress)
 
 
 if __name__ == "__main__":
@@ -352,6 +367,10 @@ if __name__ == "__main__":
 
     parser.add_argument("--gname", help="create a hidden file given a group name")
 
+    parser.add_argument(
+        "--stress", help="generate tests for file"
+    )
+
     args = parser.parse_args()
 
     main(
@@ -363,5 +382,6 @@ if __name__ == "__main__":
         args.exit,
         args.gname,
         args.command_search,
-        args.issue
+        args.issue,
+        args.stress
     )
