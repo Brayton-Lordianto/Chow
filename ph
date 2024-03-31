@@ -184,7 +184,7 @@ def perform_gname(gname):
     print(gname)
 
 
-def main(commit, git_search, fetch_env, ask, env, exit, gname):
+def main(commit, git_search, fetch_env, ask, env, exit, gname, command_search):
     if commit is not None:
         perform_commit(commit)
     elif git_search is not None:
