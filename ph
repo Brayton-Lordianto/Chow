@@ -271,7 +271,34 @@ def perform_command_search(query):
             break
 
 
-def main(commit, git_search, fetch_env, ask, env, exit, gname, command_search):
+def github_issue(file):
+    file_env = ["cat", file]
+    fcontent = subprocess.check_output(file_env)
+    fcontent = fcontent.decode("utf-8")
+    # print(fcontent)
+    obj = {"code": fcontent}
+    res = requests.post(url + "/generate_issue", json=obj)
+    issue_body = res.json()["response"]
+    command = [
+        "gh", "issue", "create",
+        "--title", f"GPT GENERATED {file[2:]} analysis",
+        "--body", issue_body,
+    ]
+    try:
+        result = subprocess.run(command, capture_output=True, text=True)
+
+        # Check the response status code
+        if result.returncode == 0:
+            print("Issue created successfully!")
+        else:
+            print(f"Failed to create issue. Status code: {result.returncode}")
+            print(f"Error message: {result.stderr}")
+
+    except subprocess.CalledProcessError as e:
+        print(f"Error occurred while creating the issue: {e}")
+
+
+def main(commit, git_search, fetch_env, ask, env, exit, gname, command_search, issue):
     if commit is not None:
         perform_commit(commit)
     elif git_search is not None:
@@ -288,6 +315,8 @@ def main(commit, git_search, fetch_env, ask, env, exit, gname, command_search):
         perform_join(gname)
     elif command_search is not None:
         perform_command_search(command_search)
+    elif issue is not None:
+        github_issue(issue)
 
 
 if __name__ == "__main__":
@@ -303,6 +332,8 @@ if __name__ == "__main__":
     parser.add_argument("-f", "--fetch_env", help="fetches an environment from a repo")
 
     parser.add_argument("-a", "--ask", help="ask a question based on current env")
+
+    parser.add_argument("-i", "--issue", help="generate issue for a specific file")
 
     parser.add_argument(
         "-e", "--env", help="load a current environment into the server"
@@ -332,4 +363,5 @@ if __name__ == "__main__":
         args.exit,
         args.gname,
         args.command_search,
+        args.issue
     )

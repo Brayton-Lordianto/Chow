@@ -53,6 +53,31 @@ def generate_expl(text):
 
 
 @stub.function()
+def generate_issue(text):
+    import openai
+    import os
+
+    client = openai.OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+    prompt = "Generate possible problems with the below code:\n\n"
+    prompt += f"{text}"
+    response = client.chat.completions.create(
+        messages=[
+            {
+                "role": "system",
+                "content": "You are a software developer reviewing code.\n"
+                + "Write critical feedback, make sure that you only talk about real problems.",
+            },
+            {"role": "user", "content": prompt},
+        ],
+        model="gpt-4",
+    )
+    print(response.choices[0].message.content)
+    expl = response.choices[0].message.content
+
+    return {"response": expl}
+
+
+@stub.function()
 def generate_commit(text):
     import openai
     import os
@@ -309,5 +334,11 @@ def flask_app():
         repo = request.json["repo"]
         query = request.json["query"]
         return search_commit.remote(gname, repo, query)
+    
+    @web_app.post("/generate_issue")
+    @cross_origin()
+    def generate_issue_route():
+        code = request.json["code"]
+        return generate_issue.remote(code)
 
     return web_app
