@@ -7,8 +7,9 @@ from typing import List
 import os
 import subprocess
 import tkinter as tk
+import sys
 import requests
-import keyboard
+import readline
 import pipes
 import dotenv
 
@@ -152,9 +153,30 @@ def perform_commit(repo):
     }
     res = requests.post(url + "/add_commit", json=obj)
     print("commmit pushed")
-    
-def perform_search(query):
-    print(query)
+
+
+def perform_search(search_string):
+    repo, query = search_string.split()
+    obj = {"gname": get_gname(), "repo": repo, "query": query}
+    res = requests.post(url + "/search_commit", json=obj)
+    res = res.json()["commits"]
+    index = 0
+    while True:
+        sys.stdout.write(f'\r\033[2K {res[index]["branch"].strip()} {res[index]["hash"].strip()} {res[index]["message"][:40] + ("..." if len(res[index]["message"]) > 40 else "")}')
+        sys.stdout.flush()
+        try:
+            key = readchar.readkey()
+            if key == readchar.key.TAB:
+                index = (index + 1) % len(res)
+            elif key == readchar.key.ENTER:
+                print()
+                print(res[index]["branch"], res[index]["hash"])
+                return
+            else:
+                print("\nInvalid input. Press Tab to navigate or Enter to select.")
+        except KeyboardInterrupt:
+            print("\nExiting...")
+            break
 
 
 def perform_fetch(repo):
@@ -203,16 +225,34 @@ def perform_join(gname):
     # starts logging every command for the specific gname
     os.environ[ph_on_var] = "true"
 
+import readchar  # using module readchar
+
 def perform_command_search(query):
     obj = {"gname": get_gname(), "query": query}
     print(get_gname())
-    res = requests.post(url + "/search_command", json=obj).json()
-    pos = 0
-    print(res["commands"][pos%3])
+    res = requests.post(url + "/search_command", json=obj)
+    commands = res.json()["commands"]
+    if not commands:
+        print("No commands found.")
+        return
+
+    index = 0
     while True:
-        pos+=1
-        if keyboard.is_pressed('tab'):
-            print(res["commands"][pos%3])
+        sys.stdout.write(f'\r\033[2K {commands[index]["command"]} {commands[index]["explanation"]}')
+        sys.stdout.flush()
+        try:
+            key = readchar.readkey()
+            if key == readchar.key.TAB:
+                index = (index + 1) % len(commands)
+            elif key == readchar.key.ENTER:
+                print()
+                print(commands[index]["command"])
+                return
+            else:
+                print("\nInvalid input. Press Tab to navigate or Enter to select.")
+        except KeyboardInterrupt:
+            print("\nExiting...")
+            break
             
         
 
@@ -244,7 +284,7 @@ if __name__ == "__main__":
 
     parser.add_argument("-c", "--commit", help="get repo name for commiting")
 
-    parser.add_argument("-s", "--git_search", help="get a query to search for commits")
+    parser.add_argument("-s", "--git_search", help="string of repo and query")
 
     parser.add_argument("-f", "--fetch_env", help="fetches an environment from a repo")
 
