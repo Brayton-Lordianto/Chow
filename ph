@@ -8,8 +8,10 @@ import os
 import subprocess
 import tkinter as tk
 import requests
+import dotenv
 
-url = "https://tanzhasan--example-web-flask-flask-app.modal.run"
+dotenv.load_dotenv()
+url = os.environ["MODAL_URL"]
 
 """/search_command gname query
 /add_command gname command 
@@ -84,14 +86,24 @@ def perform_commit(repo):
 def perform_search(query):
     print(query)
 
-def perform_fetch(env):
-    print(env)
+def perform_fetch(repo):
+    obj = { "gname": get_gname(), "repo": repo}
+    res = requests.post(url + "/get_env", json=obj)
+    env_info = res.json()["env"]
+    with open(".env", "w") as file:
+        file.write(env_info)
+    print(env_info)
 
 def perform_ask(question):
     print(question)
 
 def perform_env(repo):
-    print(repo)
+    echo_env = ["cat", ".env"]
+    env_contents = subprocess.check_output(echo_env)
+    env_contents = env_contents.decode('utf-8')
+    obj = { "gname": get_gname(), "repo": repo, "content": env_contents}
+    res = requests.post(url + "/add_env", json=obj)
+    return "done"
 
 def perform_exit():
     print("Exit")
