@@ -15,4 +15,4 @@ ph_add_command() {
     fi
 }
 
-PROMPT_COMMAND="ph_add_command${PROMPT_COMMAND:+; $PROMPT_COMMAND}"
+PROMPT_COMMAND="ph_handle_command${PROMPT_COMMAND:+; $PROMPT_COMMAND}"

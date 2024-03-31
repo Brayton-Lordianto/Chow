@@ -9,6 +9,7 @@ import subprocess
 import tkinter as tk
 import requests
 import keyboard
+import pipes
 import dotenv
 
 dotenv.load_dotenv()
@@ -24,15 +25,15 @@ url = os.environ.get("MODAL_URL")
 /search_commit gname repo query 
 """
 
-gname_var = "PH_GNAME"
-
-
+ph_on_var = "PH_ON"
+gname_var, cached_gname = "PH_GNAME", None
 def get_gname():
-    gname = os.environ.get(gname_var)
-    gname = gname if gname is not None else "default"
-    return gname
-
-
+    global cached_gname
+    if not cached_gname:
+        gname = os.environ.get(gname_var)
+        gname = gname if gname is not None else "default"
+        cached_gname = gname
+    return cached_gname
 def git_diff():
     exclude_paths = [
         "node_modules/",
@@ -130,12 +131,14 @@ def perform_commit(repo):
     create_text_box(unedited_commit_message)
 
     # do a wait until the user confirms or cancels
-
     if not edited_commit_message:
         print("cancelled commit")
         return
 
     # if confirmed, perform a push
+    if not edited_commit_message: print("cancelled commit"); return
+    
+    # if confirmed, perform a push 
     git_push(edited_commit_message)
 
     # add to mongo
@@ -149,8 +152,7 @@ def perform_commit(repo):
     }
     res = requests.post(url + "/add_commit", json=obj)
     print("commmit pushed")
-
-
+    
 def perform_search(query):
     print(query)
 
@@ -175,14 +177,31 @@ def perform_env(repo):
     obj = {"gname": get_gname(), "repo": repo, "content": env_contents}
     res = requests.post(url + "/add_env", json=obj)
     return "done"
+    
 
 
 def perform_exit():
     print("Exit")
 
+def set_gname(gname):
+    global gname_var
 
-def perform_gname(gname):
-    print(gname)
+    # write to the file ~/ph_gname.txt
+    # from the bash file, after this, it will set $PH_GNAME to the gname
+    with open(f"{os.environ['HOME']}/ph_gname.txt", "w") as file:
+        file.write(gname)
+
+    
+def perform_join(gname):
+    # set up gname env variable
+    global cached_gname
+    set_gname(gname)
+    print("added gname", gname)
+    cached_gname = gname
+    
+    # set up ph_on variable
+    # starts logging every command for the specific gname
+    os.environ[ph_on_var] = "true"
 
 def perform_command_search(query):
     obj = {"gname": get_gname(), "query": query}
@@ -212,7 +231,7 @@ def main(commit, git_search, fetch_env, ask, env, exit, gname, command_search):
     elif exit:
         perform_exit()
     elif gname is not None:
-        perform_gname(gname)
+        perform_join(gname)
     elif command_search is not None:
         perform_command_search(command_search)
 
