@@ -2,15 +2,11 @@
 
 import argparse
 import json
-from pathlib import Path
-from typing import List
 import os
 import subprocess
 import tkinter as tk
 import sys
 import requests
-import readline
-import pipes
 import dotenv
 import readchar  # using module readchar
 
@@ -163,7 +159,7 @@ def perform_search(search_string):
         print("Cannot use current environment called ", get_gname())
         return
     print(
-        "Press Tab to navigate. \nPress Enter to select and execute. \nPress Ctrl+C to exit.\n"
+        "Press Tab to navigate. \nPress Enter to select and checkout. \nPress Ctrl+X to copy hash to clipboard. \nPress Ctrl+C to exit.\n"
     )
     while True:
         sys.stdout.write(
@@ -177,6 +173,12 @@ def perform_search(search_string):
             elif key == readchar.key.ENTER:
                 print()
                 print(res[index]["branch"], res[index]["hash"])
+                subprocess.run(['git', 'checkout', 'hash'], input=selected_text, encoding='utf-8')
+                return
+            elif key == readchar.key.CTRL_X:
+                selected_text = res[index]["hash"]
+                subprocess.run(['xclip', '-selection', 'clipboard'], input=selected_text, encoding='utf-8')
+                print(f"\nCopied to clipboard: {selected_text}")
                 return
             else:
                 print("\nInvalid input. Press Tab to navigate or Enter to select.")
@@ -246,7 +248,7 @@ def perform_command_search(query):
         return
 
     print(
-        "Press Tab to navigate. \nPress Enter to select and execute. \nPress Ctrl+C to exit.\n"
+        "Press Tab to navigate. \nPress Enter to select and execute. \nPress Ctrl+X to copy to clipboard. \nPress Ctrl+C to exit.\n"
     )
     index = 0
     while True:
@@ -261,6 +263,11 @@ def perform_command_search(query):
             elif key == readchar.key.ENTER:
                 print()
                 os.system(commands[index]["command"])
+                return
+            elif key == readchar.key.CTRL_X:
+                selected_text = commands[index]["command"]
+                subprocess.run(['xclip', '-selection', 'clipboard'], input=selected_text, encoding='utf-8')
+                print(f"\nCopied to clipboard: {selected_text}")
                 return
             else:
                 print("\nInvalid input. Press Tab to navigate or Enter to select.")
