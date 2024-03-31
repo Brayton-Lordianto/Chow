@@ -7,8 +7,9 @@ from typing import List
 import os
 import subprocess
 import tkinter as tk
+import sys
 import requests
-import keyboard
+import readline
 import dotenv
 
 dotenv.load_dotenv()
@@ -184,16 +185,34 @@ def perform_exit():
 def perform_gname(gname):
     print(gname)
 
+import readchar  # using module readchar
+
 def perform_command_search(query):
     obj = {"gname": get_gname(), "query": query}
     print(get_gname())
-    res = requests.post(url + "/search_command", json=obj).json()
-    pos = 0
-    print(res["commands"][pos%3])
+    res = requests.post(url + "/search_command", json=obj)
+    commands = res.json()["commands"]
+    if not commands:
+        print("No commands found.")
+        return
+
+    index = 0
     while True:
-        pos+=1
-        if keyboard.is_pressed('tab'):
-            print(res["commands"][pos%3])
+        sys.stdout.write(f'\r\033[2K {commands[index]["command"]} {commands[index]["explanation"]}')
+        sys.stdout.flush()
+        try:
+            key = readchar.readkey()
+            if key == readchar.key.TAB:
+                index = (index + 1) % len(commands)
+            elif key == readchar.key.ENTER:
+                print()
+                print(commands[index]["command"])
+                return
+            else:
+                print("\nInvalid input. Press Tab to navigate or Enter to select.")
+        except KeyboardInterrupt:
+            print("\nExiting...")
+            break
             
         
 
