@@ -40,6 +40,16 @@ def on_closing():
     text = text_box.get("1.0", tk.END)
     edited_commit_message = text
     root.destroy()
+    
+def cancel():
+    global edited_commit_message, root
+    edited_commit_message = None
+    root.destroy()
+    
+def confirm(): 
+    global edited_commit_message, root
+    edited_commit_message = text_box.get("1.0", tk.END)
+    root.destroy()
 
 def create_text_box(initial_text): 
     global root, text_box
@@ -51,10 +61,16 @@ def create_text_box(initial_text):
     text_box = tk.Text(root)
     text_box.pack(fill=tk.BOTH, expand=True)
     text_box.insert(tk.END, initial_text)
+    
+    # add buttons
+    cancel_button = tk.Button(root, text="Cancel", command=cancel)
+    cancel_button.pack(side=tk.LEFT, padx=5, pady=5)
+    confirm_button = tk.Button(root, text="Confirm", command=confirm)
+    confirm_button.pack(side=tk.RIGHT, padx=5, pady=5)
 
     # Center the window on the screen
     window_width = 400
-    window_height = 300
+    window_height = 350
     screen_width = root.winfo_screenwidth()
     screen_height = root.winfo_screenheight()
     x = (screen_width - window_width) // 2
@@ -67,16 +83,37 @@ def create_text_box(initial_text):
     # Run the application
     root.mainloop()
 
+def git_push(commit_message): 
+    subprocess.check_output(["git", "commit", "-m", commit_message])
+    subprocess.check_output(["git", "push"])
+
+# returns the current branch name and the commit hash
+def get_current_git_info():
+    return subprocess.check_output(["git", "branch", "--show-current"]).decode('utf-8'), subprocess.check_output(["git", "rev-parse", "HEAD"]).decode('utf-8')
+
 def perform_commit(repo):
-    # git diff file contents and gname and repo 
+    # send to post request to server to make a commit
     diff = git_diff()
     obj = { "gname": get_gname(), "repo": repo, "diff_contents": diff }
-    
-    # send to post request to server
     res = requests.post(url + "/make_commit", json=obj)
     
-    # open in a text box that is editable 
-    create_text_box("j")
+    # # open in a text box that is editable 
+    unedited_commit_message = json.loads(res.text)["commit_message"]
+    create_text_box(unedited_commit_message)
+    
+    # do a wait until the user confirms or cancels
+    
+    if not edited_commit_message: print("cancelled commit"); return
+    
+    # if confirmed, perform a push 
+    git_push(edited_commit_message)
+    
+    # add to mongo
+    branch, commit_hash = get_current_git_info()
+    obj = { "gname": get_gname(), "repo": repo, "commit_message": edited_commit_message, "commit_hash": commit_hash, "branch": branch }
+    res = requests.post(url + "/add_commit", json=obj)
+    print("commmit pushed")
+    
     
     
     
