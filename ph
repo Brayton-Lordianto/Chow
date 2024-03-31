@@ -17,16 +17,6 @@ import readchar  # using module readchar
 dotenv.load_dotenv()
 url = os.environ.get("MODAL_URL")
 
-"""
-/search_command gname query
-/add_command gname command 
-/add_env gname repo content
-/get_env gname repo
-/make_commit gname repo diff_contents #returns llm response
-/add_commit gname repo commit_message commit_hash branch #adds to mongo
-/search_commit gname repo query 
-"""
-
 ph_on_var = "PH_ON"
 gname_var, cached_gname = "PH_GNAME", None
 def get_gname():
