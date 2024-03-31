@@ -118,6 +118,7 @@ def add_command(gname, command):
     command = command.strip()
     if command == '':
         return {"result": 200}
+    print(gname)
     db = client[gname]["command"]
     client = openai.OpenAI(api_key=os.environ["OPENAI_API_KEY"])
     existing_command = db.find_one({"content": command})
