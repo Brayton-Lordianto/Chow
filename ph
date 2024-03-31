@@ -14,7 +14,6 @@ import threading
 dotenv.load_dotenv()
 url = "https://tanzhasan--example-web-flask-flask-app.modal.run"
 
-print("hi")
 ph_on_var = "PH_ON"
 gname_var, cached_gname = "PH_GNAME", None
 
