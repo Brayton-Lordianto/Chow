@@ -16,7 +16,6 @@ url = "https://tanzhasan--example-web-flask-flask-app.modal.run"
 
 ph_on_var = "PH_ON"
 gname_var, cached_gname = "PH_GNAME", None
-print("hey there, what's up")
 
 def get_gname():
     global cached_gname
