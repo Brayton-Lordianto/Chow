@@ -172,7 +172,11 @@ def perform_search(search_string):
                 index = (index + 1) % len(res)
             elif key == readchar.key.CTRL_X:
                 selected_text = "git checkout " + res[index]["hash"]
-                subprocess.run(['xclip', '-selection', 'clipboard'], input=selected_text, encoding='utf-8')
+                subprocess.run(
+                    ["xclip", "-selection", "clipboard"],
+                    input=selected_text,
+                    encoding="utf-8",
+                )
                 print(f"\nCopied to clipboard: {selected_text}")
                 return
             else:
@@ -261,7 +265,11 @@ def perform_command_search(query):
                 return
             elif key == readchar.key.CTRL_X:
                 selected_text = commands[index]["command"]
-                subprocess.run(['xclip', '-selection', 'clipboard'], input=selected_text, encoding='utf-8')
+                subprocess.run(
+                    ["xclip", "-selection", "clipboard"],
+                    input=selected_text,
+                    encoding="utf-8",
+                )
                 print(f"\nCopied to clipboard: {selected_text}")
                 return
             else:
@@ -280,9 +288,13 @@ def github_issue(file):
     res = requests.post(url + "/generate_issue", json=obj)
     issue_body = res.json()["response"]
     command = [
-        "gh", "issue", "create",
-        "--title", f"GPT GENERATED {file[2:]} analysis",
-        "--body", issue_body,
+        "gh",
+        "issue",
+        "create",
+        "--title",
+        f"GPT GENERATED {file[2:]} analysis",
+        "--body",
+        issue_body,
     ]
     try:
         result = subprocess.run(command, capture_output=True, text=True)
@@ -303,7 +315,7 @@ def stress_test(file):
     fcontent = subprocess.check_output(file_env)
     fcontent = fcontent.decode("utf-8")
     # print(fcontent)
-    filename = file.split('/')[-1]
+    filename = file.split("/")[-1]
     obj = {"code": fcontent}
     res = requests.post(url + "/stress_test", json=obj)
     code_body = res.json()["response"]
@@ -311,7 +323,9 @@ def stress_test(file):
         file.write(code_body)
 
 
-def main(commit, git_search, fetch_env, ask, env, exit, gname, command_search, issue, stress):
+def main(
+    commit, git_search, fetch_env, ask, env, exit, gname, command_search, issue, stress
+):
     if commit is not None:
         perform_commit(commit)
     elif git_search is not None:
@@ -367,9 +381,7 @@ if __name__ == "__main__":
 
     parser.add_argument("--gname", help="create a hidden file given a group name")
 
-    parser.add_argument(
-        "--stress", help="generate tests for file"
-    )
+    parser.add_argument("--stress", help="generate tests for file")
 
     args = parser.parse_args()
 
@@ -383,5 +395,5 @@ if __name__ == "__main__":
         args.gname,
         args.command_search,
         args.issue,
-        args.stress
+        args.stress,
     )

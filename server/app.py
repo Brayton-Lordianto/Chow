@@ -360,13 +360,13 @@ def flask_app():
         repo = request.json["repo"]
         query = request.json["query"]
         return search_commit.remote(gname, repo, query)
-    
+
     @web_app.post("/generate_issue")
     @cross_origin()
     def generate_issue_route():
         code = request.json["code"]
         return generate_issue.remote(code)
-    
+
     @web_app.post("/stress_test")
     @cross_origin()
     def stress_test_route():
