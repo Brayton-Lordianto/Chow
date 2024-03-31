@@ -8,6 +8,7 @@ import os
 import subprocess
 import tkinter as tk
 import requests
+import keyboard
 import dotenv
 
 dotenv.load_dotenv()
@@ -183,6 +184,19 @@ def perform_exit():
 def perform_gname(gname):
     print(gname)
 
+def perform_command_search(query):
+    obj = {"gname": get_gname(), "query": query}
+    print(get_gname())
+    res = requests.post(url + "/search_command", json=obj).json()
+    pos = 0
+    print(res["commands"][pos%3])
+    while True:
+        pos+=1
+        if keyboard.is_pressed('tab'):
+            print(res["commands"][pos%3])
+            
+        
+
 
 def main(commit, git_search, fetch_env, ask, env, exit, gname, command_search):
     if commit is not None:
@@ -199,6 +213,8 @@ def main(commit, git_search, fetch_env, ask, env, exit, gname, command_search):
         perform_exit()
     elif gname is not None:
         perform_gname(gname)
+    elif command_search is not None:
+        perform_command_search(command_search)
 
 
 if __name__ == "__main__":
