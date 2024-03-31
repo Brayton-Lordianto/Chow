@@ -12,6 +12,7 @@ import requests
 import readline
 import pipes
 import dotenv
+import readchar  # using module readchar
 
 dotenv.load_dotenv()
 url = os.environ.get("MODAL_URL")
@@ -124,6 +125,10 @@ def get_current_git_info():
 def perform_commit(repo):
     # send to post request to server to make a commit
     diff = git_diff()
+    if diff == "": # no changes
+        print("No added changes to commit.")
+        return
+    
     obj = {"gname": get_gname(), "repo": repo, "diff_contents": diff}
     res = requests.post(url + "/make_commit", json=obj)
 
@@ -223,7 +228,6 @@ def perform_join(gname):
     # starts logging every command for the specific gname
     set_ph_on("true")
 
-import readchar  # using module readchar
 
 def perform_command_search(query):
     obj = {"gname": get_gname(), "query": query}
