@@ -155,6 +155,10 @@ def perform_search(search_string):
     res = requests.post(url + "/search_commit", json=obj)
     res = res.json()["commits"]
     index = 0
+    if len(res) == 0:
+        print("Cannot use current environment called ", get_gname())
+        return
+    print("Press Tab to navigate. \nPress Enter to select and execute. \nPress Ctrl+C to exit.\n")
     while True:
         sys.stdout.write(f'\r\033[2K {res[index]["branch"].strip()} {res[index]["hash"].strip()} {res[index]["message"][:40] + ("..." if len(res[index]["message"]) > 40 else "")}')
         sys.stdout.flush()
