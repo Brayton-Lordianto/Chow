@@ -13,7 +13,8 @@ import dotenv
 dotenv.load_dotenv()
 url = os.environ.get("MODAL_URL")
 
-"""/search_command gname query
+"""
+/search_command gname query
 /add_command gname command 
 /add_env gname repo content
 /get_env gname repo
@@ -26,10 +27,11 @@ gname_var = "PH_GNAME"
 def get_gname():
     gname = os.environ.get(gname_var)
     gname = gname if gname is not None else "default"
+    print(gname)
     return gname
 def git_diff():
     exclude_paths = ["node_modules/", "venv/", "*.log", "*.swp", "*.bak", ".cache", ".env", ".config"] # useless files 
-    git_diff_command = ["git", "diff"]
+    git_diff_command = ["git", "diff", "--cached"]
     for path in exclude_paths:
         git_diff_command.append(f":(exclude){path}")
     diff_output = subprocess.check_output(git_diff_command)
