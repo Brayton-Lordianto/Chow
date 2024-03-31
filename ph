@@ -145,13 +145,15 @@ def perform_commit(repo):
         "commit_hash": commit_hash,
         "branch": branch,
     }
+
     def send_request():
         session = requests.Session()
         try:
-            session.post(url + "/add_commit", json=obj, timeout=.05)
+            session.post(url + "/add_commit", json=obj, timeout=0.05)
             session.close()
-        except Exception as e: 
+        except Exception as e:
             pass
+
     thread = threading.Thread(target=send_request)
     print("commmit pushed")
 
@@ -207,18 +209,18 @@ def perform_env(repo):
     env_contents = subprocess.check_output(echo_env)
     env_contents = env_contents.decode("utf-8")
     obj = {"gname": get_gname(), "repo": repo, "content": env_contents}
-    
+
     def send_request():
         session = requests.Session()
         try:
             session.post(url + "/add_env", json=obj, timeout=0.05)
             session.close()
-        except Exception as e: 
+        except Exception as e:
             pass
-    
+
     thread = threading.Thread(target=send_request)
     thread.start()
-    
+
     return "done"
 
 
@@ -241,14 +243,10 @@ def set_gname(gname):
 
 
 def perform_join(gname):
-    # set up gname env variable
     global cached_gname
     set_gname(gname)
     print("joined gname", gname)
     cached_gname = gname
-
-    # set up ph_on variable
-    # starts logging every command for the specific gname
     set_ph_on("true")
 
 
