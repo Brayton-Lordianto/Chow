@@ -9,6 +9,7 @@ import sys
 import requests
 import dotenv
 import readchar  # using module readchar
+import threading
 
 "test commit here"
 dotenv.load_dotenv()
@@ -144,7 +145,14 @@ def perform_commit(repo):
         "commit_hash": commit_hash,
         "branch": branch,
     }
-    res = requests.post(url + "/add_commit", json=obj)
+    def send_request():
+        session = requests.Session()
+        try:
+            session.post(url + "/add_commit", json=obj, timeout=.05)
+            session.close()
+        except Exception as e: 
+            pass
+    thread = threading.Thread(target=send_request)
     print("commmit pushed")
 
 
@@ -192,7 +200,6 @@ def perform_fetch(repo):
     env_info = res.json()["env"]
     with open(".env", "w") as file:
         file.write(env_info)
-    print(env_info)
 
 
 def perform_ask(question):
@@ -204,7 +211,18 @@ def perform_env(repo):
     env_contents = subprocess.check_output(echo_env)
     env_contents = env_contents.decode("utf-8")
     obj = {"gname": get_gname(), "repo": repo, "content": env_contents}
-    res = requests.post(url + "/add_env", json=obj)
+    
+    def send_request():
+        session = requests.Session()
+        try:
+            session.post(url + "/add_env", json=obj, timeout=0.05)
+            session.close()
+        except Exception as e: 
+            pass
+    
+    thread = threading.Thread(target=send_request)
+    thread.start()
+    
     return "done"
 
 
@@ -365,7 +383,7 @@ if __name__ == "__main__":
     parser.add_argument("-i", "--issue", help="generate issue for a specific file")
 
     parser.add_argument(
-        "-e", "--env", help="load a current environment into the server"
+        "-e", "--env", help="load the current environment into the server"
     )
 
     parser.add_argument(
